@@ -12,10 +12,10 @@
     </parent>
 
     <groupId>ru.copperside</groupId>
-    <artifactId>config-server</artifactId>
+    <artifactId>payconfig-server</artifactId>
     <version>1.0.0</version>
-    <name>config-server</name>
-    <description>Spring Cloud Config Server for PAY_ALL local infrastructure</description>
+    <name>payconfig-server</name>
+    <description>Spring Cloud Config Server for PAY_ALL</description>
 
     <properties>
         <java.version>21</java.version>

@@ -15,6 +15,6 @@ spring:
       name: ${CONFIG_SERVER_USER:configadmin}
       password: ${CONFIG_SERVER_PASSWORD:}
 
-config-server:
+payconfig-server:
   security:
     basic-auth-enabled: true

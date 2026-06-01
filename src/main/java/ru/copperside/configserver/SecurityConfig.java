@@ -15,7 +15,7 @@ public class SecurityConfig {
      * endpoint (the Config Server API) requires HTTP Basic authentication.
      */
     @Bean
-    @ConditionalOnProperty(name = "config-server.security.basic-auth-enabled", havingValue = "true")
+    @ConditionalOnProperty(name = "payconfig-server.security.basic-auth-enabled", havingValue = "true")
     SecurityFilterChain securedFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
@@ -31,7 +31,7 @@ public class SecurityConfig {
      * that send no credentials keep working unchanged.
      */
     @Bean
-    @ConditionalOnProperty(name = "config-server.security.basic-auth-enabled", havingValue = "false", matchIfMissing = true)
+    @ConditionalOnProperty(name = "payconfig-server.security.basic-auth-enabled", havingValue = "false", matchIfMissing = true)
     SecurityFilterChain openFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())

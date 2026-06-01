@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
         properties = {
                 "spring.profiles.active=native",
                 "spring.cloud.config.server.native.search-locations=classpath:/config-repo-test",
-                "config-server.security.basic-auth-enabled=true",
+                "payconfig-server.security.basic-auth-enabled=true",
                 "spring.security.user.name=tester",
                 "spring.security.user.password=secret"
         }
