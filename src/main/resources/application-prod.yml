@@ -10,6 +10,10 @@ spring:
           clone-on-start: true
           force-pull: true
           timeout: 10
+          # Corp GitLab uses an internal CA the JRE base image doesn't trust.
+          # Skip TLS validation for the git backend (internal network), mirroring the
+          # `--insecure-skip-tls-verify` already used for the corp Helm repo.
+          skip-ssl-validation: ${CONFIG_GIT_SKIP_SSL:false}
   security:
     user:
       name: ${CONFIG_SERVER_USER:configadmin}

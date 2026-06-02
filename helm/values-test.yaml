@@ -51,6 +51,8 @@ extraEnvs:
     value: "https://git.tkbbank.ru/tkbpay-config/payconfig_server.git"   # backend config-repo (branch = CONFIG_GIT_LABEL)
   - name: CONFIG_GIT_LABEL
     value: test                  # environment = git branch
+  - name: CONFIG_GIT_SKIP_SSL
+    value: "true"                # corp GitLab internal CA not trusted by the JRE base image
   - name: CONFIG_GIT_USERNAME
     value: "config-repo-deploy-token"   # identifier, not a secret
   - name: CONFIG_SERVER_USER
