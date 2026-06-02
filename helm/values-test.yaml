@@ -52,7 +52,7 @@ extraEnvs:
   - name: CONFIG_GIT_LABEL
     value: test                  # environment = git branch
   - name: CONFIG_GIT_SKIP_SSL
-    value: "true"                # corp GitLab internal CA not trusted by the JRE base image
+    value: "false"               # corp CA is imported into the image truststore (Dockerfile); kill-switch only
   - name: CONFIG_GIT_USERNAME
     value: "config-repo-deploy-token"   # identifier, not a secret
   - name: CONFIG_SERVER_USER
