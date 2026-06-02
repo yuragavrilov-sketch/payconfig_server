@@ -54,7 +54,7 @@ extraEnvs:
   - name: CONFIG_GIT_SKIP_SSL
     value: "true"                # TEMP kill-switch — flip to "false" once corp root CA is committed to certs/ (see Dockerfile)
   - name: CONFIG_GIT_USERNAME
-    value: "config-repo-deploy-token"   # identifier, not a secret
+    value: "gitlab+deploy-token-3"   # GitLab deploy-token username (auto-generated); not a secret
   - name: CONFIG_SERVER_USER
     value: configadmin           # Basic-auth username clients send
   # --- Secrets: never hardcode. Reference a pre-created k8s Secret `payconfig-server-secret`.
