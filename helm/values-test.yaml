@@ -48,7 +48,7 @@ extraEnvs:
   - name: SPRING_PROFILES_ACTIVE
     value: prod                  # GitLab git backend + Basic auth (config-server has no `test` profile)
   - name: CONFIG_GIT_URI
-    value: "https://git.tkbbank.ru/tkbpay/.../pay-config-repo.git"   # TODO: real config-repo backend URL
+    value: "https://git.tkbbank.ru/tkbpay-config/payconfig_server.git"   # backend config-repo (branch = CONFIG_GIT_LABEL)
   - name: CONFIG_GIT_LABEL
     value: test                  # environment = git branch
   - name: CONFIG_GIT_USERNAME
