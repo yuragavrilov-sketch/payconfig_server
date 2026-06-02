@@ -6,14 +6,22 @@ vault:
   enabled: false
 replicaCount: 1
 
-# Published externally. Basic auth (prod profile) protects the config endpoints;
-# /actuator/health stays open for probes.
+# Published externally — SECURITY notes (the config source is sensitive):
+#  - Auth: this env runs the `prod` Spring profile (SPRING_PROFILES_ACTIVE=prod below), which
+#    enables HTTP Basic auth on all config endpoints (/actuator/health stays open for probes).
+#    REQUIRES a real, non-empty CONFIG_SERVER_PASSWORD secret — an empty password breaks auth.
+#  - TLS: confirm the nginx ingress terminates TLS centrally for *.test.payk8s.transcapital.com.
+#    If it does NOT, uncomment ssl-redirect and add a `tls:` section (cert-manager Secret);
+#    otherwise Basic-auth creds and served config travel in plaintext.
+#  - Defense in depth: restrict to corp networks via whitelist-source-range when the CIDRs are known.
 ingress:
   enabled: true
   hosts:
     - payconfig-server.test.payk8s.transcapital.com   # TODO: confirm host
   annotations:
     kubernetes.io/ingress.class: "nginx"
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"                  # enable once TLS is confirmed
+    # nginx.ingress.kubernetes.io/whitelist-source-range: "10.0.0.0/8"  # optional: corp-only access
 
 ports:
   - containerPort: 8080
