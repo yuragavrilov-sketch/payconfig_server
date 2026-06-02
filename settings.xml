@@ -38,8 +38,8 @@
         <!-- Credentials come from masked GitLab CI/CD variables, NOT committed. -->
         <server>
             <id>esb-group</id>
-            <username>${env.ESB_REPO_USER}</username>
-            <password>${env.ESB_REPO_PASSWORD}</password>
+            <username>${env.NEXUS_REPO_USER}</username>
+            <password>${env.NEXUS_REPO_PASS}</password>
         </server>
     </servers>
 </settings>
