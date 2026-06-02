@@ -1,20 +1,20 @@
 FROM harbor.online.tkbbank.ru/custom-base-images/openjre-alpine-musl:21.0.8
 RUN addgroup -S app && adduser -S -G app -h /app app
-RUN apk add --no-cache curl openssl
+RUN apk add --no-cache curl
 
-# Trust the corp git server's certificate chain so JGit can clone the config-repo over HTTPS
-# with TLS verification ON (no skip-ssl-validation). The chain is fetched at build time from
-# git.tkbbank.ru (the corp CI runner has network access to it) and imported into the JRE truststore.
-RUN set -eux; \
+# Trust the corporate CA so JGit clones the config-repo over HTTPS with TLS verification ON.
+# The CA is VENDORED (pinned, code-reviewed) in certs/ — NOT fetched over the network at build
+# time (that would trust whatever a build-time MITM presents). Drop the corp ROOT CA (PEM) into
+# certs/ (e.g. certs/tkbbank-root.crt). Until it is committed, the image builds without it and
+# CONFIG_GIT_SKIP_SSL must stay true; flip it to false once the CA is in place.
+COPY certs/ /usr/local/share/corp-ca/
+RUN set -eu; \
     : "${JAVA_HOME:?JAVA_HOME must be set}"; \
-    echo | openssl s_client -connect git.tkbbank.ru:443 -servername git.tkbbank.ru -showcerts 2>/dev/null > /tmp/raw.pem; \
-    awk '/-----BEGIN CERTIFICATE-----/{n++; cap=1} cap{print > ("/tmp/cert-" n ".pem")} /-----END CERTIFICATE-----/{cap=0}' /tmp/raw.pem; \
-    test -s /tmp/cert-1.pem || { echo "ERROR: no certificate fetched from git.tkbbank.ru:443"; exit 1; }; \
-    for c in /tmp/cert-*.pem; do \
-        keytool -importcert -trustcacerts -noprompt -alias "tkbbank-$(basename "$c" .pem)" \
+    for c in /usr/local/share/corp-ca/*.crt /usr/local/share/corp-ca/*.pem; do \
+        [ -f "$c" ] || continue; \
+        keytool -importcert -trustcacerts -noprompt -alias "corp-$(basename "$c")" \
             -keystore "$JAVA_HOME/lib/security/cacerts" -storepass changeit -file "$c"; \
-    done; \
-    rm -f /tmp/raw.pem /tmp/cert-*.pem
+    done
 
 WORKDIR /app
 COPY deploy/payconfig-server-*.jar /app/app.jar
