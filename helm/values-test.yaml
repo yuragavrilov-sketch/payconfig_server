@@ -1,0 +1,58 @@
+image:
+  repository: harbor.online.tkbbank.ru/tkbpay/payconfig_server   # tag injected by CI (--set image.tag)
+serviceAccount:
+  name: test-adapters            # TODO: confirm SA for this namespace
+vault:
+  enabled: false
+replicaCount: 1
+
+# Config Server is cluster-internal — clients reach it via the Service DNS, not from outside.
+# No external ingress (and exposing the config source publicly would be a security risk).
+ingress:
+  enabled: false
+
+ports:
+  - containerPort: 8080
+service:
+  name: payconfig-server         # clients use CONFIG_SERVER_URL=http://payconfig-server:8080
+  port: 8080
+  targetPort: 8080
+
+# /actuator/health stays open even with Basic auth on (permitAll), so probes need no creds.
+livenessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  httpGet:
+    path: /actuator/health
+    port: 8080
+readinessProbe:
+  initialDelaySeconds: 20
+  periodSeconds: 10
+  httpGet:
+    path: /actuator/health
+    port: 8080
+
+extraEnvs:
+  - name: SPRING_PROFILES_ACTIVE
+    value: prod                  # GitLab git backend + Basic auth (config-server has no `test` profile)
+  - name: CONFIG_GIT_URI
+    value: "https://git.tkbbank.ru/tkbpay/.../pay-config-repo.git"   # TODO: real config-repo backend URL
+  - name: CONFIG_GIT_LABEL
+    value: test                  # environment = git branch
+  - name: CONFIG_GIT_USERNAME
+    value: "config-repo-deploy-token"   # identifier, not a secret
+  - name: CONFIG_SERVER_USER
+    value: configadmin           # Basic-auth username clients send
+  # --- Secrets: never hardcode. Reference a pre-created k8s Secret `payconfig-server-secret`.
+  #     If the chart's extraEnvs does NOT support valueFrom, switch to `vault.enabled: true`
+  #     or inject these via masked GitLab CI variables (--set). Confirm against chart 0.4.0.
+  - name: CONFIG_GIT_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: payconfig-server-secret
+        key: CONFIG_GIT_PASSWORD
+  - name: CONFIG_SERVER_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: payconfig-server-secret
+        key: CONFIG_SERVER_PASSWORD
