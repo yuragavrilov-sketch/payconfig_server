@@ -5,6 +5,8 @@ variables:
   CHART_REPO: "https://harbor.online.tkbbank.ru/chartrepo/kubernetes"
   CHART_NAME: "kubernetes/java"
   CHART_VERSION: "0.4.0"
+  # Helm release name must be DNS-1123 (no underscores); CI_PROJECT_NAME is `payconfig_server`.
+  RELEASE_NAME: "payconfig-server"
 
 include:
   - project: tkbpay/microservices/template
@@ -22,5 +24,5 @@ helm_deploy_test:
     - chmod 0400 $(echo "${!K8S_CONFIG}")
     - export KUBECONFIG=$(echo "${!K8S_CONFIG}")
     - helm repo add kubernetes --insecure-skip-tls-verify=true $CHART_REPO
-    - helm upgrade $CI_PROJECT_NAME --install --insecure-skip-tls-verify=true --version=$CHART_VERSION $CHART_NAME --set image.tag=$IMAGE_TAG -f helm/values-$ENV.yaml --namespace=$NAMESPACE_TEST
+    - helm upgrade $RELEASE_NAME --install --insecure-skip-tls-verify=true --version=$CHART_VERSION $CHART_NAME --set image.tag=$IMAGE_TAG -f helm/values-$ENV.yaml --namespace=$NAMESPACE_TEST
   when: manual
