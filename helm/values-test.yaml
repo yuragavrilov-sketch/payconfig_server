@@ -6,10 +6,14 @@ vault:
   enabled: false
 replicaCount: 1
 
-# Config Server is cluster-internal — clients reach it via the Service DNS, not from outside.
-# No external ingress (and exposing the config source publicly would be a security risk).
+# Published externally. Basic auth (prod profile) protects the config endpoints;
+# /actuator/health stays open for probes.
 ingress:
-  enabled: false
+  enabled: true
+  hosts:
+    - payconfig-server.test.payk8s.transcapital.com   # TODO: confirm host
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
 
 ports:
   - containerPort: 8080
