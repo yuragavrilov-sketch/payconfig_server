@@ -4,6 +4,10 @@ spring:
       server:
         git:
           uri: ${CONFIG_GIT_URI}
+          # One folder per service: Config Server expands the {application} token to the requested
+          # app name, so sbp-router pulls sbp-router/application.yml (etc.). A root application.yml
+          # stays global for all services. (Quoted so YAML keeps the literal token, not a flow map.)
+          search-paths: '{application}'
           username: ${CONFIG_GIT_USERNAME:}
           password: ${CONFIG_GIT_PASSWORD:}
           default-label: ${CONFIG_GIT_LABEL:prod}
