@@ -52,7 +52,7 @@ extraEnvs:
   - name: CONFIG_GIT_LABEL
     value: test                  # environment = git branch
   - name: CONFIG_GIT_SKIP_SSL
-    value: "true"                # TEMP kill-switch — flip to "false" once corp root CA is committed to certs/ (see Dockerfile)
+    value: "false"               # corp CA now imported into the image (withcert + Dockerfile) → verify TLS to git.tkbbank.ru. Roll back to "true" if a clone fails on PKIX.
   - name: CONFIG_GIT_USERNAME
     value: "gitlab+deploy-token-3"   # GitLab deploy-token username (auto-generated); not a secret
   - name: CONFIG_SERVER_USER

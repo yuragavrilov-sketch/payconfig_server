@@ -2,19 +2,33 @@ FROM harbor.online.tkbbank.ru/custom-base-images/openjre-alpine-musl:21.0.8
 RUN addgroup -S app && adduser -S -G app -h /app app
 RUN apk add --no-cache curl
 
-# Trust the corporate CA so JGit clones the config-repo over HTTPS with TLS verification ON.
-# The CA is VENDORED (pinned, code-reviewed) in certs/ — NOT fetched over the network at build
-# time (that would trust whatever a build-time MITM presents). Drop the corp ROOT CA (PEM) into
-# certs/ (e.g. certs/tkbbank-root.crt). Until it is committed, the image builds without it and
-# CONFIG_GIT_SKIP_SSL must stay true; flip it to false once the CA is in place.
+# Trust the corporate CA chain so JGit clones the config-repo over HTTPS with TLS verification ON.
+# The CA PEM is placed in certs/ by the CI docker_build (from the $CERT variable, withcert template).
+# Each file may hold a full chain (root + intermediate) — keytool imports only the FIRST cert from a
+# multi-cert file, so we split and import every certificate. Fail loudly if none was found (e.g.
+# empty $CERT) — without the CA, JGit cannot validate git.tkbbank.ru and the server crashes at start.
 COPY certs/ /usr/local/share/corp-ca/
 RUN set -eu; \
     : "${JAVA_HOME:?JAVA_HOME must be set}"; \
-    for c in /usr/local/share/corp-ca/*.crt /usr/local/share/corp-ca/*.pem; do \
-        [ -f "$c" ] || continue; \
-        keytool -importcert -trustcacerts -noprompt -alias "corp-$(basename "$c")" \
-            -keystore "$JAVA_HOME/lib/security/cacerts" -storepass changeit -file "$c"; \
-    done
+    imported=0; \
+    for f in /usr/local/share/corp-ca/*.crt /usr/local/share/corp-ca/*.pem; do \
+        [ -f "$f" ] || continue; \
+        rm -f /tmp/corpca-*.pem; i=0; \
+        while IFS= read -r line || [ -n "$line" ]; do \
+            printf '%s\n' "$line" >> "/tmp/corpca-$i.pem"; \
+            case "$line" in *"-----END CERTIFICATE-----"*) i=$((i+1)) ;; esac; \
+        done < "$f"; \
+        for c in /tmp/corpca-*.pem; do \
+            [ -s "$c" ] || continue; \
+            grep -q "BEGIN CERTIFICATE" "$c" || continue; \
+            keytool -importcert -trustcacerts -noprompt -alias "corp-$(basename "$f")-$imported" \
+                -keystore "$JAVA_HOME/lib/security/cacerts" -storepass changeit -file "$c"; \
+            imported=$((imported+1)); \
+        done; \
+        rm -f /tmp/corpca-*.pem; \
+    done; \
+    echo "Imported $imported corporate CA certificate(s)"; \
+    [ "$imported" -gt 0 ] || { echo "ERROR: no corporate CA certificate found in certs/ (is the CERT CI variable populated in docker_build?)"; exit 1; }
 
 WORKDIR /app
 COPY deploy/payconfig-server-*.jar /app/app.jar
